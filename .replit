@@ -1,0 +1,16 @@
+# Replit run config for the Litmus marketing site (static Vite build).
+run = "npm install && npm run build && npm run preview"
+entrypoint = "src/App.jsx"
+
+# Build once, then serve dist/ on Replit's $PORT via vite preview.
+[deployment]
+deploymentTarget = "static"
+build = ["npm", "install", "&&", "npm", "run", "build"]
+publicDir = "dist"
+
+[[ports]]
+localPort = 5190
+externalPort = 80
+
+[nix]
+channel = "stable-24_05"
