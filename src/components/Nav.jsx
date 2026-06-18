@@ -44,9 +44,6 @@ export default function Nav({ route, go }) {
               <span style={{ fontFamily: "Inter", fontSize: 10, color: T.ink3, marginTop: 2 }}>
                 By <strong style={{ color: T.ink2, fontWeight: 700 }}>QK AI Labs</strong>
               </span>
-              <span style={{ fontFamily: "Inter", fontSize: 10, color: T.ink3 }}>
-                Built by <strong style={{ color: T.ink2, fontWeight: 700 }}>Pratham Chintrate</strong>
-              </span>
             </span>
           </button>
 
