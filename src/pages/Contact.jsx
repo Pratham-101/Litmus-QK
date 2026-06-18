@@ -15,7 +15,7 @@ export default function Contact() {
       <div className="grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "start" }}>
         <div>
           <Eyebrow>Get started</Eyebrow>
-          <H2>Talk to an engineer</H2>
+          <H2>Talk to our FDE</H2>
           <Lead>
             See the platform evaluate one of your agents end-to-end — dataset, scoring, gating, and a deployment
             verdict. We'll walk through the framework, the architecture, and how it maps onto your stack.

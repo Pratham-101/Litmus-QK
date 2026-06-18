@@ -17,11 +17,11 @@ export const T = {
   accent: "#1a1613",    // primary buttons are ink (Braintrust-like)
   amber: "#b87514",
   ring: "#1a161312",
-  brand: "#292862",       // QualityKiosk navy
-  brandGold: "#fca61b",   // QualityKiosk amber/gold
+  brand: "#292862",       // brand navy
+  brandGold: "#fca61b",   // brand amber/gold accent
 };
 
-export const PARTNERS = ["QualityKiosk Technologies", "DevRev", "Arize AX"];
+export const PARTNERS = ["QK AI Labs", "DevRev", "Arize AX"];
 
 export const BRANCH = {
   CLAMP: { color: "#c1452f", label: "CLAMP", full: "Governance & Risk Gates", q: "Is the agent safe to deploy?" },
@@ -34,7 +34,7 @@ export const MAXW = 1200;
 // Product identity
 export const PRODUCT = {
   name: "Litmus",
-  by: "QualityKiosk",
+  by: "QK AI Labs",
   tagline: "The definitive test for production AI agents.",
 };
 

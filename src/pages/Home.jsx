@@ -74,7 +74,7 @@ function Hero({ go }) {
             fontFamily: "Schibsted Grotesk", fontSize: "clamp(44px, 6.6vw, 80px)", fontWeight: 800,
             lineHeight: 1.0, letterSpacing: -2.4, color: T.ink, maxWidth: 980, margin: "0 auto",
           }}>
-            Ship AI agents the<br />enterprise can trust
+            Unit test for AI agents<br />that enterprise can trust
           </h1>
         </Reveal>
         <Reveal delay={140}>
@@ -86,7 +86,7 @@ function Hero({ go }) {
         <Reveal delay={210}>
           <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 38 }}>
             <Button onClick={() => go("contact")}>Sign up →</Button>
-            <Button onClick={() => go("contact")} variant="secondary">Talk to an engineer</Button>
+            <Button onClick={() => go("contact")} variant="secondary">Talk to our FDE</Button>
           </div>
         </Reveal>
         <Reveal delay={280}>
@@ -102,30 +102,55 @@ function Hero({ go }) {
   );
 }
 
-/* 2 — SOCIAL PROOF / PARTNERS */
-function WhatStrip() {
+/* 2 — INTEGRATIONS MARQUEE (current + upcoming, auto-scrolling) */
+const INTEGRATIONS = [
+  { kind: "img", src: "/assets/devrev-logo.jpeg", alt: "DevRev", live: true, h: 58 },
+  { kind: "img", src: "/assets/arize-logo.png", alt: "Arize AX", live: true, h: 58 },
+  { kind: "img", src: "/assets/elevenlabs-logo.png", alt: "ElevenLabs", live: false, h: 26, w: 175 },
+  { kind: "img", src: "/assets/openai-logo.png", alt: "OpenAI", live: false, h: 46 },
+  { kind: "img", src: "/assets/claude-logo.webp", alt: "Claude", live: false, h: 48 },
+];
+
+function IntegrationChip({ it }) {
   return (
-    <div style={{ borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}`, background: T.bgWarm, padding: "38px 0" }}>
-      <Container>
-        <div style={{ textAlign: "center", fontFamily: "IBM Plex Mono", fontSize: 12, letterSpacing: 1, color: T.ink3, marginBottom: 36, textTransform: "uppercase" }}>
-          Engineered by <b style={{ color: T.ink }}>QualityKiosk Technologies</b> · built on DevRev × Arize
+    <div style={{
+      flexShrink: 0, height: 96, minWidth: 230, background: T.paper,
+      border: `1px solid ${T.line}`, borderRadius: 16, display: "flex",
+      flexDirection: "column", alignItems: "center", justifyContent: "center",
+      gap: 6, padding: "0 30px", margin: "0 10px",
+    }}>
+      {it.kind === "img"
+        ? <img src={it.src} alt={it.alt} style={{ height: it.h || 40, maxWidth: it.w || 185, objectFit: "contain", mixBlendMode: "multiply" }} />
+        : <span style={{ fontFamily: "Schibsted Grotesk", fontSize: 24, fontWeight: 700, color: T.ink, letterSpacing: -0.5 }}>{it.label}</span>}
+      <span style={{
+        fontFamily: "IBM Plex Mono", fontSize: 9.5, letterSpacing: 0.8, textTransform: "uppercase",
+        color: it.live ? T.green : T.ink3,
+        background: it.live ? `${T.green}14` : T.bgWarm, border: `1px solid ${it.live ? T.green + "40" : T.line}`,
+        padding: "2px 8px", borderRadius: 99,
+      }}>{it.live ? "● Integrated" : "Coming soon"}</span>
+    </div>
+  );
+}
+
+function WhatStrip() {
+  // duplicate the list so the marquee loops seamlessly
+  const loop = [...INTEGRATIONS, ...INTEGRATIONS];
+  return (
+    <div style={{ borderTop: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}`, background: T.bgWarm, padding: "40px 0", overflow: "hidden" }}>
+      <div style={{ textAlign: "center", fontFamily: "IBM Plex Mono", fontSize: 12, letterSpacing: 1, color: T.ink3, marginBottom: 30, textTransform: "uppercase" }}>
+        Engineered by <b style={{ color: T.ink }}>QK AI Labs</b> · integrates with your stack
+      </div>
+      <div className="marquee">
+        <div className="marquee-track">
+          {loop.map((it, i) => <IntegrationChip key={i} it={it} />)}
         </div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap", alignItems: "stretch" }}>
-          {[
-            { src: "/assets/qk-logo.jpeg", alt: "QualityKiosk Technologies", h: 120 },
-            { src: "/assets/devrev-logo.jpeg", alt: "DevRev", h: 92 },
-            { src: "/assets/arize-logo.png", alt: "Arize AX", h: 92 },
-          ].map((l) => (
-            <div key={l.alt} style={{
-              flex: "1 1 280px", maxWidth: 360, minHeight: 160, background: T.paper,
-              border: `1px solid ${T.line}`, borderRadius: 16, display: "flex",
-              alignItems: "center", justifyContent: "center", padding: "16px 24px",
-            }}>
-              <img src={l.src} alt={l.alt} style={{ height: l.h, maxWidth: "92%", objectFit: "contain", mixBlendMode: "multiply" }} />
-            </div>
-          ))}
-        </div>
-      </Container>
+      </div>
+      <style>{`
+        .marquee { position: relative; width: 100%; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+        .marquee-track { display: flex; width: max-content; animation: marquee-scroll 34s linear infinite; }
+        .marquee:hover .marquee-track { animation-play-state: paused; }
+        @keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      `}</style>
     </div>
   );
 }
@@ -287,7 +312,7 @@ function FinalCTA({ go }) {
         </Lead>
         <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 36 }}>
           <Button onClick={() => go("contact")}>Sign up →</Button>
-          <Button onClick={() => go("contact")} variant="secondary">Talk to an engineer</Button>
+          <Button onClick={() => go("contact")} variant="secondary">Talk to our FDE</Button>
         </div>
       </Container>
     </section>

@@ -20,7 +20,7 @@ export default function Footer({ go }) {
       ["Documentation", () => go("docs")],
       ["Evaluation lifecycle", () => go("docs")],
       ["LLM-as-a-Judge", () => go("docs")],
-      ["Talk to an engineer", () => go("contact")],
+      ["Talk to our FDE", () => go("contact")],
     ]},
   ];
 
@@ -30,7 +30,7 @@ export default function Footer({ go }) {
         <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr 1fr 1fr", gap: 36 }} className="footer-grid">
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 16 }}>
-              <img src="/assets/qk-logo.jpeg" alt="QualityKiosk" style={{ width: 30, height: 30, borderRadius: 7, objectFit: "cover" }} />
+              <img src="/assets/qk-mark.png" alt="QK AI Labs" style={{ height: 28, width: "auto", objectFit: "contain" }} />
               <span style={{ fontFamily: "Schibsted Grotesk", fontWeight: 800, fontSize: 17 }}>Litmus</span>
             </div>
             <p style={{ fontSize: 14.5, color: T.ink2, maxWidth: 340, lineHeight: 1.65 }}>
@@ -57,7 +57,7 @@ export default function Footer({ go }) {
           ))}
         </div>
         <div style={{ marginTop: 48, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-          <span style={{ fontSize: 13, color: T.ink3 }}>© 2026 Litmus · QualityKiosk Technologies · Built by Pratham Chintrate.</span>
+          <span style={{ fontSize: 13, color: T.ink3 }}>© 2026 Litmus · QK AI Labs · Built by Pratham Chintrate.</span>
           <span style={{ fontFamily: "IBM Plex Mono", fontSize: 12.5, color: T.ink3 }}>CLAMP · PEST · GHTPWR</span>
         </div>
       </div>

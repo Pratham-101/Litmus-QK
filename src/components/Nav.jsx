@@ -42,7 +42,7 @@ export default function Nav({ route, go }) {
                 Litmus
               </span>
               <span style={{ fontFamily: "Inter", fontSize: 10, color: T.ink3, marginTop: 2 }}>
-                By <strong style={{ color: T.ink2, fontWeight: 700 }}>QualityKiosk</strong>
+                By <strong style={{ color: T.ink2, fontWeight: 700 }}>QK AI Labs</strong>
               </span>
               <span style={{ fontFamily: "Inter", fontSize: 10, color: T.ink3 }}>
                 Built by <strong style={{ color: T.ink2, fontWeight: 700 }}>Pratham Chintrate</strong>
@@ -65,7 +65,7 @@ export default function Nav({ route, go }) {
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Button onClick={() => go("contact")} variant="secondary" style={{ padding: "10px 18px", fontSize: 14 }}>
-              Talk to an engineer
+              Talk to our FDE
             </Button>
             <Button onClick={() => go("contact")} style={{ padding: "10px 20px", fontSize: 14 }}>
               Sign up
@@ -79,6 +79,6 @@ export default function Nav({ route, go }) {
 
 function Logo() {
   return (
-    <img src="/assets/qk-logo.jpeg" alt="QualityKiosk" style={{ height: 48, width: "auto", objectFit: "contain", mixBlendMode: "multiply" }} />
+    <img src="/assets/qk-mark.png" alt="QK AI Labs" style={{ height: 30, width: "auto", objectFit: "contain" }} />
   );
 }
