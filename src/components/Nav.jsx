@@ -37,12 +37,15 @@ export default function Nav({ route, go }) {
         <div style={{ maxWidth: MAXW, margin: "0 auto", padding: "15px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <button onClick={() => go("home")} style={{ display: "flex", alignItems: "center", gap: 11, background: "none", border: "none", cursor: "pointer" }}>
             <Logo />
-            <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1 }}>
+            <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.25 }}>
               <span style={{ fontFamily: "Schibsted Grotesk", fontWeight: 800, fontSize: 18, color: T.ink, letterSpacing: -0.4 }}>
                 Litmus
               </span>
-              <span style={{ fontFamily: "IBM Plex Mono", fontSize: 9.5, color: T.ink3, letterSpacing: 0.5, marginTop: 3 }}>
-                BY QUALITYKIOSK
+              <span style={{ fontFamily: "Inter", fontSize: 10, color: T.ink3, marginTop: 2 }}>
+                By <strong style={{ color: T.ink2, fontWeight: 700 }}>QualityKiosk</strong>
+              </span>
+              <span style={{ fontFamily: "Inter", fontSize: 10, color: T.ink3 }}>
+                Built by <strong style={{ color: T.ink2, fontWeight: 700 }}>Pratham Chintrate</strong>
               </span>
             </span>
           </button>

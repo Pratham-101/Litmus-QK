@@ -38,7 +38,7 @@ export default function Footer({ go }) {
               built on DevRev Agent Studio and Arize AX, grounded in CLAMP · PEST · GHTPWR.
             </p>
             <p style={{ fontSize: 13.5, color: T.ink, marginTop: 16, fontWeight: 600 }}>
-              Designed &amp; Built by Pratham Chintrate.
+              Built by Pratham Chintrate.
             </p>
           </div>
           {cols.map((c) => (
@@ -57,7 +57,7 @@ export default function Footer({ go }) {
           ))}
         </div>
         <div style={{ marginTop: 48, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-          <span style={{ fontSize: 13, color: T.ink3 }}>© 2026 Litmus · QualityKiosk Technologies · Designed &amp; Built by Pratham Chintrate.</span>
+          <span style={{ fontSize: 13, color: T.ink3 }}>© 2026 Litmus · QualityKiosk Technologies · Built by Pratham Chintrate.</span>
           <span style={{ fontFamily: "IBM Plex Mono", fontSize: 12.5, color: T.ink3 }}>CLAMP · PEST · GHTPWR</span>
         </div>
       </div>
