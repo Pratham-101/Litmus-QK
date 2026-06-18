@@ -41,4 +41,4 @@ export const PRODUCT = {
 // The live evaluation tool — intentionally NOT linked publicly. Only surfaced
 // via a small "Launch live demo" button on the Contact page. Point this at the
 // hosted URL once deployed (Replit / Vercel).
-export const LIVE_TOOL_URL = "http://localhost:5181";
+export const LIVE_TOOL_URL = "https://litmus-engine.replit.app";
