@@ -12,7 +12,17 @@ export default function VideoShowcase() {
   const toggle = () => {
     const v = vidRef.current;
     if (!v) return;
-    if (v.paused) { v.playbackRate = 1.6; v.play(); setPlaying(true); } else { v.pause(); setPlaying(false); }
+    if (v.paused) {
+      const p = v.play();
+      if (p && p.then) {
+        p.then(() => { v.playbackRate = 1.6; setPlaying(true); })
+         .catch(() => { setPlaying(false); }); // autoplay/load blocked — stay on poster
+      } else {
+        v.playbackRate = 1.6; setPlaying(true);
+      }
+    } else {
+      v.pause(); setPlaying(false);
+    }
   };
 
   return (
