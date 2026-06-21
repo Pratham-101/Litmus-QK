@@ -18,8 +18,6 @@ export default function Home({ go }) {
       <Why />
       <RaceBars />
       <How go={go} />
-      <ArchSection go={go} />
-      <Platform />
       <Engine go={go} />
       <FinalCTA go={go} />
     </>
