@@ -27,6 +27,13 @@ const NAV = [
     { id: "gates", label: "Deployment gates" },
     { id: "guardrails", label: "Guardrails" },
   ]},
+  { group: "Methodology", items: [
+    { id: "how-scores", label: "How Litmus scores" },
+    { id: "fail-loud", label: "Fail-loud philosophy" },
+    { id: "calibration", label: "Judge calibration" },
+    { id: "closed-loop", label: "The closed loop" },
+    { id: "reproducibility", label: "Reproducibility" },
+  ]},
 ];
 
 const DOC = {
@@ -221,6 +228,92 @@ const DOC = {
       ["h", "Prediction records"],
       ["p", "The Arize Python SDK logs each evaluation as a prediction, with every dimension score as a feature — powering dashboards, worst-slice analysis, and drift monitors."],
       ["code", "python", "client.log(\n    model_id=\"agent-eval\",\n    model_type=ModelTypes.SCORE_CATEGORICAL,\n    environment=Environments.PRODUCTION,\n    prediction_id=run_id,\n    prediction_label=(deployment_tier, composite_score),\n    features={f\"dim_{k}\": v for k, v in dimension_scores.items()},\n    tags={\"use_case\": use_case},\n)"],
+    ],
+  },
+
+  "how-scores": {
+    title: "How Litmus scores",
+    toc: ["The 15 dimensions", "How each is scored", "Deployment verdict"],
+    body: [
+      ["p", "Litmus evaluates an agent against a structured suite, scores each response across 15 dimensions, applies blocking gates, and returns a deployment verdict — plus concrete, human-approved fixes. It works on any agent, on any platform."],
+      ["callout", "A reliability tool you can't audit isn't reliability. This section documents exactly how a verdict is produced."],
+      ["h", "The 15 dimensions"],
+      ["p", "Dimensions are grouped into three regions, each answering one question. Only the dimensions that matter for the agent type are scored — a coding agent isn't judged on CX quality; a RAG bot isn't penalised for correctly saying \"I don't know.\""],
+      ["table", [
+        ["Region", "Question", "Covers"],
+        ["CLAMP", "Is it safe to deploy?", "Safety, escalation, banned-phrase clean, hallucination, refusal quality"],
+        ["PEST", "Does it work correctly?", "Intent, policy, correctness, consistency, context retention, follow-up handling"],
+        ["GHTPWR", "Can it operate at scale?", "Groundedness, tone & brand, support quality, brevity, language"],
+      ]],
+      ["h", "How each is scored"],
+      ["list", [
+        "Deterministic checks (brevity, banned phrases) are computed in code — perfectly reproducible.",
+        "LLM-as-judge dimensions return a 0–1 score with an explanation against a rubric.",
+        "Multi-turn cases are played turn-by-turn in one session and judged on context retention and consistency.",
+      ]],
+      ["h", "Deployment verdict"],
+      ["table", [
+        ["Composite", "Verdict"],
+        ["≥ 0.90 · all gates pass", "GA (Production)"],
+        ["≥ 0.80 · all gates pass", "Beta (Pilot)"],
+        ["< 0.80 · all gates pass", "Alpha (Candidate)"],
+        ["any gate fails", "Blocked (Not Ready)"],
+      ]],
+    ],
+  },
+  "fail-loud": {
+    title: "Fail-loud philosophy",
+    toc: ["The rule", "What it means"],
+    body: [
+      ["h", "The rule"],
+      ["callout", "If we didn't measure it, we say so. We never fabricate a score."],
+      ["h", "What it means"],
+      ["list", [
+        "A dimension the judge didn't return is recorded as \"not measured\" and excluded from averages — never given a flattering default like 0.8.",
+        "A blocking gate we couldn't measure FAILS — it never silently passes. An unmeasured safety gate blocks deployment, loudly.",
+        "If the judge's quota or rate limit is hit mid-run, the run is marked INCOMPLETE and the partial verdict says so — never presented as finished.",
+      ]],
+    ],
+  },
+  calibration: {
+    title: "Judge calibration",
+    toc: ["Why trust the judge", "What we report"],
+    body: [
+      ["h", "Why trust the judge"],
+      ["p", "We hold a gold set of expert-style cases tagged across support, RAG, coding, sales, and workflow agents, balanced between grounded and hallucinated responses. We run the judge over it and report how often it agrees with the human verdict."],
+      ["h", "What we report"],
+      ["p", "Agreement overall and per agent type, a confusion matrix, and hallucination recall — of real hallucinations, how many the judge caught."],
+      ["callout", "We surface this honestly, including where the judge is weak. A small free demo model is materially worse than a frontier judge — which is why production scoring uses a frontier model (GPT-4o / Claude)."],
+    ],
+  },
+  "closed-loop": {
+    title: "The closed loop",
+    toc: ["Suggest → approve → verify", "Human-in-the-loop"],
+    body: [
+      ["h", "Suggest → approve → verify"],
+      ["steps", [
+        ["Suggest", "Failures become concrete edits — a prompt clause, a missing skill, a workflow gap — grounded in your agent's real config when you provide it."],
+        ["Approve", "You tick the changes you want; a before/after diff is shown. Nothing is applied automatically."],
+        ["Export", "An importable, copy-paste change-set (or a payload for platforms with a config API) you apply in your own console."],
+        ["Re-evaluate", "Re-run on the identical cases and show the before/after delta (e.g. 62% → 89%). The report states \"re-evaluated on the same N cases.\""],
+      ]],
+      ["h", "Human-in-the-loop"],
+      ["callout", "Litmus never mutates a production agent without a human approving the exact change. The approval gate is the product, not friction to remove."],
+    ],
+  },
+  reproducibility: {
+    title: "Reproducibility",
+    toc: ["Every verdict is auditable", "What we won't do"],
+    body: [
+      ["h", "Every verdict is auditable"],
+      ["p", "Each report pins how it was produced — judge provider and model, agent type, dataset, thresholds, temperature — so re-running with the same inputs reproduces the verdict, and you can defend a result months later."],
+      ["h", "What we won't do"],
+      ["list", [
+        "Auto-apply changes to a live agent.",
+        "Reverse-engineer a platform's internal APIs to write to production config.",
+        "Fabricate scores for things we couldn't measure.",
+        "Present a partial or interrupted run as a complete verdict.",
+      ]],
     ],
   },
 };

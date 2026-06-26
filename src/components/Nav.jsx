@@ -8,7 +8,6 @@ const LINKS = [
   { label: "Architecture", to: "architecture" },
   { label: "Observability", to: "observability" },
   { label: "Case Studies", to: "cases" },
-  { label: "Methodology", to: "methodology" },
   { label: "Docs", to: "docs" },
 ];
 
