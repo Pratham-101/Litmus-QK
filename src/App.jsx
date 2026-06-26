@@ -8,9 +8,10 @@ import Observability from "./pages/Observability.jsx";
 import Cases from "./pages/Cases.jsx";
 import Roadmap from "./pages/Roadmap.jsx";
 import Docs from "./pages/Docs.jsx";
+import Methodology from "./pages/Methodology.jsx";
 import Contact from "./pages/Contact.jsx";
 
-const ROUTES = { home: Home, framework: Framework, architecture: Architecture, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact };
+const ROUTES = { home: Home, framework: Framework, architecture: Architecture, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, methodology: Methodology, contact: Contact };
 
 function parseHash() {
   const raw = window.location.hash.replace(/^#\/?/, "");
