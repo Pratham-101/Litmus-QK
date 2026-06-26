@@ -251,6 +251,7 @@ const DOC = {
         "LLM-as-judge dimensions return a 0–1 score with an explanation against a rubric.",
         "Multi-turn cases are played turn-by-turn in one session and judged on context retention and consistency.",
       ]],
+      ["p", "The per-case composite weighting is agent-type-aware: brevity is weighted for support and sales agents, while for coding, RAG, and workflow agents that weight moves to groundedness and hallucination — where those agents actually live. Weights are normalised over the signals that apply, so a disabled check never inflates a score."],
       ["h", "Deployment verdict"],
       ["table", [
         ["Composite", "Verdict"],
