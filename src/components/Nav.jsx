@@ -5,7 +5,6 @@ import { Button } from "./ui.jsx";
 const LINKS = [
   { label: "Platform", to: "home", hash: "#platform" },
   { label: "Framework", to: "framework" },
-  { label: "Architecture", to: "architecture" },
   { label: "Observability", to: "observability" },
   { label: "Case Studies", to: "cases" },
   { label: "Docs", to: "docs" },

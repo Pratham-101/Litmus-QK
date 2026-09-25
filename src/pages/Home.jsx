@@ -1,7 +1,6 @@
 import React from "react";
 import { T, BRANCH } from "../theme.js";
 import { Container, Section, Eyebrow, H2, Lead, Button, Card, Pill, Frame, DotGrid } from "../components/ui.jsx";
-import ArchDiagram from "../components/ArchDiagram.jsx";
 import LiveEval from "../components/LiveEval.jsx";
 import RaceBars from "../components/RaceBars.jsx";
 import VideoShowcase from "../components/VideoShowcase.jsx";
@@ -213,26 +212,6 @@ function How({ go }) {
       </div>
       <div style={{ textAlign: "center", marginTop: 40 }}>
         <Button onClick={() => go("framework")} variant="secondary">Explore the framework →</Button>
-      </div>
-    </Section>
-  );
-}
-
-/* 5 — THE ARCHITECTURE (inline diagram) */
-function ArchSection({ go }) {
-  return (
-    <Section>
-      <div style={{ maxWidth: 820, margin: "0 auto 48px", textAlign: "center" }}>
-        <Eyebrow color={T.green}>The platform architecture</Eyebrow>
-        <H2 style={{ margin: "0 auto" }}>How the evaluator is built</H2>
-        <Lead style={{ margin: "16px auto 0", textAlign: "center" }}>
-          A FastAPI middleware that observes and measures — it never modifies your agent. Three ingestion paths
-          feed one evaluation engine that fans 14 evaluators across every response and streams results downstream.
-        </Lead>
-      </div>
-      <ArchDiagram />
-      <div style={{ textAlign: "center", marginTop: 44 }}>
-        <Button onClick={() => go("architecture")}>See the full architecture →</Button>
       </div>
     </Section>
   );

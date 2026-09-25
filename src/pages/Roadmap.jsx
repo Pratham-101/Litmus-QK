@@ -103,8 +103,7 @@ export default function Roadmap({ go }) {
           observability pipeline — so quality stays comparable across the entire fleet.
         </Lead>
         <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 30 }}>
-          <Button onClick={() => go("architecture")}>See the architecture →</Button>
-          <Button onClick={() => go("cases")} variant="secondary">Read the case studies</Button>
+          <Button onClick={() => go("cases")}>Read the case studies →</Button>
         </div>
       </Section>
     </>

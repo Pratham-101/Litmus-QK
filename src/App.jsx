@@ -3,14 +3,13 @@ import Nav from "./components/Nav.jsx";
 import Footer from "./components/Footer.jsx";
 import Home from "./pages/Home.jsx";
 import Framework from "./pages/Framework.jsx";
-import Architecture from "./pages/Architecture.jsx";
 import Observability from "./pages/Observability.jsx";
 import Cases from "./pages/Cases.jsx";
 import Roadmap from "./pages/Roadmap.jsx";
 import Docs from "./pages/Docs.jsx";
 import Contact from "./pages/Contact.jsx";
 
-const ROUTES = { home: Home, framework: Framework, architecture: Architecture, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact };
+const ROUTES = { home: Home, framework: Framework, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact };
 
 function parseHash() {
   const raw = window.location.hash.replace(/^#\/?/, "");

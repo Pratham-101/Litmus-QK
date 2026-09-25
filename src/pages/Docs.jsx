@@ -17,12 +17,6 @@ const NAV = [
     { id: "judge", label: "LLM-as-a-Judge" },
     { id: "scoring", label: "Scoring & tiers" },
   ]},
-  { group: "Build", items: [
-    { id: "quickstart", label: "Quickstart" },
-    { id: "devrev", label: "DevRev integration" },
-    { id: "pipeline", label: "Evaluation pipeline" },
-    { id: "arize", label: "Arize observability" },
-  ]},
   { group: "Govern", items: [
     { id: "gates", label: "Deployment gates" },
     { id: "guardrails", label: "Guardrails" },
@@ -155,79 +149,6 @@ const DOC = {
       ["h", "The principle"],
       ["callout", "Guardrails define boundaries so AI can operate with freedom inside them, not recklessly outside them."],
       ["p", "They are both technical and procedural — constraining, guiding, and validating how the agent operates so responses stay accurate, safe, and aligned with business and compliance standards."],
-    ],
-  },
-
-  quickstart: {
-    title: "Quickstart",
-    toc: ["Install", "Run your first evaluation", "Read the verdict"],
-    body: [
-      ["h", "Install"],
-      ["p", "The evaluator is a FastAPI service. It carries per-request credentials — nothing is hardcoded — so each run brings its own DevRev, Arize, and judge-LLM config."],
-      ["code", "bash", "python3 -m venv .venv && source .venv/bin/activate\npip install -r requirements.txt\nuvicorn app.main:app --reload --port 8000"],
-      ["h", "Run your first evaluation"],
-      ["p", "POST a free-text requirement. The generator detects the domain and builds 200+ dimension-tagged test cases; the runner evaluates each one and streams progress over SSE."],
-      ["code", "bash", "curl -X POST http://localhost:8000/api/runs \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"use_case\": \"evaluate my airline support agent\",\n    \"devrev\": { \"pat_token\": \"...\", \"agent_don_id\": \"don:core:...\" },\n    \"judge\":  { \"provider\": \"claude_cli\", \"model\": \"haiku\" }\n  }'"],
-      ["h", "Read the verdict"],
-      ["p", "The final report carries a composite score, the per-gate results, and a deployment tier — Alpha, Beta, GA, or Not Ready."],
-      ["code", "json", "{\n  \"composite_score\": 0.92,\n  \"all_gates_pass\": true,\n  \"deployment_tier\": \"GA (Production)\",\n  \"deployment_authorized\": true,\n  \"dimension_results\": [ /* 15 dimensions */ ]\n}"],
-    ],
-  },
-
-  devrev: {
-    title: "DevRev integration",
-    toc: ["execute-sync", "Parsing the SSE stream", "Conversations & timeline"],
-    body: [
-      ["h", "execute-sync"],
-      ["p", "The evaluator calls the live agent through the internal ai-agents execute-sync endpoint, authenticating with a personal access token (PAT). It never modifies the agent — it sends a query and reads the streamed response."],
-      ["code", "python", "url = f\"{api_base}/internal/ai-agents.events.execute-sync\"\nheaders = {\n    \"Authorization\": creds.pat_token,\n    \"Content-Type\": \"application/json\",\n    \"Accept\": \"text/event-stream\",\n}\npayload = {\n    \"agent\": creds.agent_don_id,          # the DON\n    \"event\": {\"type\": \"message\", \"message\": {\"text\": query}},\n    \"session_id\": f\"{case_id}-eval\",\n}"],
-      ["h", "Parsing the SSE stream"],
-      ["p", "The response arrives as Server-Sent Events. We accumulate message deltas into the final text and collect any skill/tool calls the agent makes along the way."],
-      ["code", "python", "async with client.stream(\"POST\", url, headers=headers, json=payload) as resp:\n    async for line in resp.aiter_lines():\n        if not line.startswith(\"data:\"):\n            continue\n        event = json.loads(line[len(\"data:\"):].strip())\n        if event[\"type\"] in (\"message\", \"message_delta\"):\n            response_text += event[\"message\"][\"text\"]\n        elif event[\"type\"] in (\"tool_call\", \"skill_call\"):\n            tool_calls.append({\"skill_name\": event[\"name\"], ...})"],
-      ["h", "Conversations & timeline"],
-      ["p", "For real-time and backfill ingestion, the poller pulls conversations.list and parses timeline-entries — so missed turns still get evaluated. Webhooks fire on DevRev events with HMAC-SHA256 verification."],
-      ["table", [
-        ["Path", "Endpoint", "Use"],
-        ["execute-sync", "ai-agents.events.execute-sync", "Query the live agent (SSE)"],
-        ["Conversations", "conversations.list", "Poller backfill of missed turns"],
-        ["Timeline", "timeline-entries.list", "Parse the message timeline"],
-        ["Webhook", "your /webhook/devrev", "Real-time event push (HMAC)"],
-      ]],
-    ],
-  },
-
-  pipeline: {
-    title: "Evaluation pipeline",
-    toc: ["Fan-out with asyncio", "The 14 evaluators", "Composite & gates"],
-    body: [
-      ["h", "Fan-out with asyncio"],
-      ["p", "Every response runs through all 14 evaluators concurrently. Deterministic checks return instantly; the 8 LLM judges run in parallel via asyncio.gather. Evaluators self-register with a decorator."],
-      ["code", "python", "@register(\"hallucination\")\nasync def evaluate_hallucination(case, response, ctx):\n    return await judge_json(HALLU_PROMPT.format(\n        query=case.query, response=response, context=ctx))\n\nasync def run_all(case, response):\n    results = await asyncio.gather(*[\n        ev(case, response) for ev in REGISTRY.values()\n    ])\n    return aggregate(results)"],
-      ["h", "The 14 evaluators"],
-      ["table", [
-        ["Type", "Evaluators"],
-        ["Deterministic (6)", "brevity · banned_phrases · intent · escalation · refusal · language"],
-        ["LLM judge (8)", "policy · hallucination · correctness · groundedness · safety · consistency · cx_quality · tone"],
-      ]],
-      ["h", "Composite & gates"],
-      ["p", "Each evaluator returns 0.0–1.0. A weighted composite is computed; critical gates are checked independently. A failed gate blocks deployment regardless of the composite."],
-      ["code", "python", "composite = sum(w[k] * scores[k] for k in scores)\ngates_pass = all([\n    scores[\"safety\"]       >= 0.99,\n    scores[\"escalation\"]   >= 0.85,\n    1 - scores[\"hallucination\"] >= 0.90,\n    banned_phrase_rate     == 0.0,\n])\ntier = decide_tier(composite, gates_pass)"],
-    ],
-  },
-
-  arize: {
-    title: "Arize observability",
-    toc: ["Dual-path export", "OTLP traces", "Prediction records"],
-    body: [
-      ["h", "Dual-path export"],
-      ["p", "Results flow to Arize over two paths that share one trace_id: OpenTelemetry spans for debugging a single response, and SDK prediction records for aggregate monitoring, drift, and gates."],
-      ["callout", "A common setup gotcha: the OTLP header must be named space_id — not space — or spans silently fail to associate with your model."],
-      ["h", "OTLP traces"],
-      ["p", "An OpenTelemetry TracerProvider exports spans over OTLP/HTTP. The span tree follows OpenInference conventions: a root agent span, child tool/skill spans, and an LLM span."],
-      ["code", "python", "from opentelemetry import trace\nfrom opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter\n\nexporter = OTLPSpanExporter(\n    endpoint=\"https://otlp.arize.com/v1/traces\",\n    headers={\"space_id\": space_id, \"api_key\": api_key},\n)\nwith tracer.start_as_current_span(\"agent_execution\") as span:\n    span.set_attribute(\"openinference.span.kind\", \"AGENT\")"],
-      ["h", "Prediction records"],
-      ["p", "The Arize Python SDK logs each evaluation as a prediction, with every dimension score as a feature — powering dashboards, worst-slice analysis, and drift monitors."],
-      ["code", "python", "client.log(\n    model_id=\"agent-eval\",\n    model_type=ModelTypes.SCORE_CATEGORICAL,\n    environment=Environments.PRODUCTION,\n    prediction_id=run_id,\n    prediction_label=(deployment_tier, composite_score),\n    features={f\"dim_{k}\": v for k, v in dimension_scores.items()},\n    tags={\"use_case\": use_case},\n)"],
     ],
   },
 

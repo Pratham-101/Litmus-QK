@@ -63,7 +63,6 @@ export default function Framework({ go }) {
         <Lead style={{ margin: "14px auto 0", textAlign: "center" }}>Two production agents, fifteen dimensions, six gates — and two correctly-blocked verdicts.</Lead>
         <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 30 }}>
           <Button onClick={() => go("cases")}>Read the case studies →</Button>
-          <Button onClick={() => go("architecture")} variant="secondary">See the architecture</Button>
         </div>
       </Section>
     </>
