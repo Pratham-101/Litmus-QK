@@ -12,7 +12,9 @@ const LINKS = [
 ];
 
 export default function Nav({ route, go }) {
-  const { user } = useMe();
+  const { user, refresh } = useMe();
+  // Signing up or out happens on another page; look again whenever the page changes.
+  useEffect(() => { refresh(); }, [route, refresh]);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
