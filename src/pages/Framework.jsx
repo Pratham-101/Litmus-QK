@@ -60,7 +60,7 @@ export default function Framework({ go }) {
 
       <Section style={{ textAlign: "center" }}>
         <H2 style={{ margin: "0 auto", maxWidth: 620 }}>See the framework score a real agent</H2>
-        <Lead style={{ margin: "14px auto 0", textAlign: "center" }}>Two production agents, fifteen dimensions, six gates — and two correctly-blocked verdicts.</Lead>
+        <Lead style={{ margin: "14px auto 0", textAlign: "center" }}>Fifteen agents across nine industries, scored dimension by dimension, each with the verdict its report reached.</Lead>
         <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 30 }}>
           <Button onClick={() => go("cases")}>Read the case studies →</Button>
         </div>

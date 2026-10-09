@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { T, LIVE_TOOL_URL } from "../theme.js";
+import { T } from "../theme.js";
 import { Container, Section, Eyebrow, H2, Lead, Card, Button } from "../components/ui.jsx";
 import { api } from "../lib/auth.js";
 import { AGENT_KINDS } from "../../api/_lib/agentKinds.js";
@@ -58,20 +58,6 @@ export default function Contact() {
             ))}
           </div>
 
-          {/* Discreet access to the live tool — not linked anywhere else on the site. */}
-          <div style={{ marginTop: 30, paddingTop: 22, borderTop: `1px dashed ${T.line}` }}>
-            <div style={{ fontFamily: "IBM Plex Mono", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: T.ink3, marginBottom: 10 }}>
-              Private preview
-            </div>
-            <a href={LIVE_TOOL_URL} target="_blank" rel="noopener noreferrer" style={{
-              display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "Schibsted Grotesk",
-              fontWeight: 600, fontSize: 13.5, color: T.brand, padding: "9px 16px", borderRadius: 999,
-              border: `1px solid ${T.brand}55`, background: `${T.brand}0c`, textDecoration: "none",
-            }}>▶ Launch the live demo</a>
-            <div style={{ fontSize: 12, color: T.ink3, marginTop: 8 }}>
-              Internal access for guided walkthroughs.
-            </div>
-          </div>
         </div>
 
         <Card style={{ padding: 32 }}>
