@@ -82,7 +82,7 @@ function Hero({ go }) {
         </Reveal>
         <Reveal delay={210}>
           <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 38 }}>
-            <Button onClick={() => go("contact")}>Sign up →</Button>
+            <Button onClick={() => go("signup")}>Sign up to download →</Button>
             <Button onClick={() => go("contact")} variant="secondary">Talk to our FDE</Button>
           </div>
         </Reveal>
@@ -288,7 +288,7 @@ function FinalCTA({ go }) {
           See the platform evaluate, gate, and report on a live agent — book a walkthrough with our team.
         </Lead>
         <div className="hero-cta" style={{ display: "flex", gap: 14, justifyContent: "center", marginTop: 36 }}>
-          <Button onClick={() => go("contact")}>Sign up →</Button>
+          <Button onClick={() => go("signup")}>Sign up to download →</Button>
           <Button onClick={() => go("contact")} variant="secondary">Talk to our FDE</Button>
         </div>
       </Container>

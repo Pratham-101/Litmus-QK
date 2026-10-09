@@ -9,7 +9,8 @@ framework.
 ## Stack
 
 - Vite + React (static SPA, hash routing)
-- No backend — fully static, deploys anywhere
+- Static pages, plus sign-up (Supabase Auth) and two Vercel functions in `api/` that serve the
+  installers. One-time setup: [SIGNUP-SETUP.md](SIGNUP-SETUP.md)
 
 ## Develop
 

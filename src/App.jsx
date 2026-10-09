@@ -8,12 +8,17 @@ import Cases from "./pages/Cases.jsx";
 import Roadmap from "./pages/Roadmap.jsx";
 import Docs from "./pages/Docs.jsx";
 import Contact from "./pages/Contact.jsx";
+import Signup from "./pages/Signup.jsx";
+import Download from "./pages/Download.jsx";
 
-const ROUTES = { home: Home, framework: Framework, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact };
+const ROUTES = { home: Home, framework: Framework, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact, signup: Signup, download: Download };
 
 function parseHash() {
   const raw = window.location.hash.replace(/^#\/?/, "");
   const [route, anchor] = raw.split("#");
+  // Sign-in returns to a real path (/download?code=…), not a hash route; read it from the path.
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  if (!route && ROUTES[path]) return { route: path, anchor };
   return { route: ROUTES[route] ? route : "home", anchor };
 }
 
