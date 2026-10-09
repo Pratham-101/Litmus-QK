@@ -1,7 +1,15 @@
 # Sign-up and download: how it works and how to configure it
 
-Visitors sign in with **Google**, **Microsoft** (Outlook / Office 365) or **an email link**. Their
-email is recorded, and the download page opens. Each download is recorded too.
+**Sign up** opens "Download Litmus". A visitor gives a name, an email and optionally a company,
+and the download page opens. **Talk to our FDE** saves the request as a lead. Everything is
+recorded in a Postgres on Railway: sign-ups, downloads and leads.
+
+- **Railway project:** `litmus-website`, a Postgres service reached through its public TCP proxy.
+- **Already set in Vercel:** `DATABASE_URL`, `SESSION_SECRET`, `SITE_URL` (https://www.unitevals.com)
+  and `GITHUB_REPO`.
+- **Still to add:** `GITHUB_TOKEN`, so the download page can list the installers.
+- **Optional sign-in buttons:** Google and Microsoft appear above the form once their settings are
+  added. The email-link option is in the API but not on the page.
 
 ```
 Sign up ─► /api/auth/google | /api/auth/microsoft | /api/auth/email   (Vercel functions in api/)
@@ -59,8 +67,9 @@ Each address can get 3 links an hour, and each IP address 10.
 Open Railway → the Postgres service → **Data**, or connect with any SQL client:
 
 ```sql
+select name, email, company, agent_kind, agent, message, created_at from leads order by created_at desc; -- FDE requests
 select count(*) from signups;                                            -- total sign-ups
-select email, provider, first_seen from signups order by first_seen desc; -- the list
+select name, email, company, first_seen from signups order by first_seen desc; -- the list
 select file, count(*) from downloads group by file order by 2 desc;       -- downloads per installer
 ```
 

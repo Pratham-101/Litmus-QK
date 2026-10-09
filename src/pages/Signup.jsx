@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { T } from "../theme.js";
 import { Container, Eyebrow, H2, Lead } from "../components/ui.jsx";
-import { emailLink, signInWith, useMe } from "../lib/auth.js";
+import { api, signInWith, useMe } from "../lib/auth.js";
 
 // A sign-in that went wrong comes back as /signup?error=…; show it as the provider worded it.
 function returnedError() {
@@ -10,93 +10,86 @@ function returnedError() {
   return e;
 }
 
-// Sign up = sign in: the first sign-in records the email (api/_lib/db.js).
+// "Download our application": name and email (recorded in the website database), then the
+// download page. Google / Microsoft buttons appear too once those sign-ins are configured.
 export default function Signup({ go }) {
   const { loading, user, methods, error: meError } = useMe();
-  const [email, setEmail] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", company: "" });
   const [busy, setBusy] = useState(null);
-  const [sent, setSent] = useState(null);
   const [error, setError] = useState(returnedError);
 
   useEffect(() => {
     if (user) go("download");
   }, [user, go]);
 
-  const run = async (what, fn) => {
-    setBusy(what);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy("form");
     setError(null);
     try {
-      await fn();
-    } catch (e) {
-      setError(e.message || String(e));
+      await api("/api/signup", { method: "POST", body: form });
+      go("download");
+    } catch (err) {
+      setError(err.message);
       setBusy(null);
     }
   };
 
-  const onEmail = (e) => {
-    e.preventDefault();
-    const address = email.trim();
-    run("email", async () => {
-      await emailLink(address);
-      setSent(address);
-      setBusy(null);
-    });
-  };
-
   const disabled = loading || !!busy;
   const oauth = methods && (methods.google || methods.microsoft);
-  const none = methods && !methods.google && !methods.microsoft && !methods.email;
+  const closed = methods && !methods.form && !oauth;
 
   return (
     <section style={{ padding: "88px 0 120px" }}>
-      <Container style={{ maxWidth: 520 }}>
-        <Eyebrow>Litmus beta · free download</Eyebrow>
-        <H2 style={{ fontSize: "clamp(30px, 4vw, 42px)" }}>Sign up to download Litmus</H2>
-        <Lead style={{ fontSize: 17, marginBottom: 36 }}>
-          Use your work account or any email address. The download page opens as soon as you are signed in.
+      <Container style={{ maxWidth: 560 }}>
+        <Eyebrow>Litmus beta · free for evaluation teams</Eyebrow>
+        <H2 style={{ fontSize: "clamp(30px, 4vw, 42px)" }}>Download Litmus</H2>
+        <Lead style={{ fontSize: 17, marginBottom: 32 }}>
+          Tell us who you are and the download opens straight away: macOS, Windows and Linux.
         </Lead>
 
         {loading && <p style={{ color: T.ink3 }}>Loading…</p>}
-        {none && (
+        {closed && (
           <p style={{ color: T.ink2, lineHeight: 1.6 }}>
-            Sign-up opens shortly. Meanwhile, <button onClick={() => go("contact")} style={{ ...linkBtn, display: "inline", marginTop: 0, fontSize: 16 }}>talk to our team</button> for early access.
+            Downloads open shortly. Meanwhile, <button onClick={() => go("contact")} style={{ ...linkBtn, display: "inline", marginTop: 0, fontSize: 16 }}>talk to our team</button> for early access.
           </p>
         )}
 
         {oauth && (
-          <div style={{ display: "grid", gap: 12 }}>
-            {methods.google && (
-              <Provider onClick={() => run("google", () => signInWith("google"))} disabled={disabled} busy={busy === "google"}
-                icon={<GoogleIcon />}>Continue with Google</Provider>
+          <>
+            <div style={{ display: "grid", gap: 12 }}>
+              {methods.google && (
+                <Provider onClick={() => { setBusy("google"); signInWith("google"); }} disabled={disabled} busy={busy === "google"}
+                  icon={<GoogleIcon />}>Continue with Google</Provider>
+              )}
+              {methods.microsoft && (
+                <Provider onClick={() => { setBusy("microsoft"); signInWith("microsoft"); }} disabled={disabled} busy={busy === "microsoft"}
+                  icon={<MicrosoftIcon />}>Continue with Microsoft (Outlook)</Provider>
+              )}
+            </div>
+            {methods.form && (
+              <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "28px 0", color: T.ink3, fontSize: 13 }}>
+                <span style={{ flex: 1, height: 1, background: T.line }} />or fill in your details<span style={{ flex: 1, height: 1, background: T.line }} />
+              </div>
             )}
-            {methods.microsoft && (
-              <Provider onClick={() => run("microsoft", () => signInWith("microsoft"))} disabled={disabled} busy={busy === "microsoft"}
-                icon={<MicrosoftIcon />}>Continue with Microsoft (Outlook)</Provider>
-            )}
-          </div>
+          </>
         )}
 
-        {oauth && methods.email && (
-          <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "28px 0", color: T.ink3, fontSize: 13 }}>
-            <span style={{ flex: 1, height: 1, background: T.line }} />or use any email<span style={{ flex: 1, height: 1, background: T.line }} />
-          </div>
-        )}
-
-        {!methods?.email ? null : sent ? (
-          <div role="status" style={{ border: `1px solid ${T.green}40`, background: `${T.green}0d`, borderRadius: 12, padding: "16px 18px", color: T.ink, lineHeight: 1.55 }}>
-            We sent a sign-in link to <strong>{sent}</strong>. Open it on this device to reach the download page.
-            <button onClick={() => setSent(null)} style={linkBtn}>Use a different email</button>
-          </div>
-        ) : (
-          <form onSubmit={onEmail} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <input
-              type="email" required autoComplete="email" placeholder="you@company.com"
-              value={email} onChange={(e) => setEmail(e.target.value)} disabled={disabled}
-              aria-label="Email address"
-              style={{ flex: "1 1 240px", fontSize: 15, padding: "13px 16px", borderRadius: 999, border: `1px solid ${T.line}`, background: T.paper, color: T.ink, fontFamily: "Inter" }}
-            />
-            <button type="submit" disabled={disabled} style={{ ...pill, background: T.ink, color: "#f7f4ee", opacity: disabled ? 0.55 : 1 }}>
-              {busy === "email" ? "Sending…" : "Email me a link"}
+        {methods?.form && (
+          <form onSubmit={submit} style={{ display: "grid", gap: 14 }}>
+            <label style={label}>Name
+              <input style={field} required maxLength={120} autoComplete="name" placeholder="Jane Doe" value={form.name} onChange={set("name")} disabled={disabled} />
+            </label>
+            <label style={label}>Email
+              <input style={field} type="email" required maxLength={254} autoComplete="email" placeholder="jane@company.com" value={form.email} onChange={set("email")} disabled={disabled} />
+            </label>
+            <label style={label}>Company <span style={{ color: T.ink3, fontWeight: 400 }}>(optional)</span>
+              <input style={field} maxLength={160} autoComplete="organization" placeholder="Acme Inc." value={form.company} onChange={set("company")} disabled={disabled} />
+            </label>
+            <button type="submit" disabled={disabled} style={{ ...pill, justifyContent: "center", marginTop: 6, background: T.ink, color: "#f7f4ee", opacity: disabled ? 0.6 : 1 }}>
+              {busy === "form" ? "Opening the download…" : "Continue to download →"}
             </button>
           </form>
         )}
@@ -107,14 +100,20 @@ export default function Signup({ go }) {
           </div>
         )}
 
-        <p style={{ marginTop: 32, fontSize: 13, color: T.ink3, lineHeight: 1.6 }}>
-          We keep your email address and which installer you download, to know how many people use Litmus.
+        <p style={{ marginTop: 28, fontSize: 13, color: T.ink3, lineHeight: 1.6 }}>
+          We keep your name, email and which installer you download, to know how many people use Litmus.
           Nothing else, and we don't share it.
         </p>
       </Container>
     </section>
   );
 }
+
+const field = {
+  display: "block", width: "100%", marginTop: 7, padding: "12px 14px", borderRadius: 10, border: `1px solid ${T.line}`,
+  background: T.paper, color: T.ink, fontSize: 15, fontFamily: "Inter", fontWeight: 400, outline: "none",
+};
+const label = { fontFamily: "Schibsted Grotesk", fontSize: 13.5, fontWeight: 600, color: T.ink };
 
 function Provider({ children, icon, onClick, disabled, busy }) {
   return (

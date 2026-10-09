@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { T, LIVE_TOOL_URL } from "../theme.js";
 import { Container, Section, Eyebrow, H2, Lead, Card, Button } from "../components/ui.jsx";
+import { api } from "../lib/auth.js";
+import { AGENT_KINDS } from "../../api/_lib/agentKinds.js";
 
 const field = {
   width: "100%", padding: "12px 14px", borderRadius: 10, border: `1px solid ${T.line}`,
@@ -8,8 +10,28 @@ const field = {
 };
 const label = { fontFamily: "Schibsted Grotesk", fontSize: 13, fontWeight: 600, color: T.ink, marginBottom: 7, display: "block" };
 
+const EMPTY = { name: "", email: "", company: "", agent_kind: "", agent: "", message: "" };
+
 export default function Contact() {
   const [sent, setSent] = useState(false);
+  const [form, setForm] = useState(EMPTY);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/api/contact", { method: "POST", body: form });
+      setSent(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <Section style={{ paddingTop: 76 }}>
       <div className="grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "start" }}>
@@ -59,23 +81,37 @@ export default function Contact() {
               <p style={{ fontSize: 15, color: T.ink2 }}>An engineer will reach out to schedule your walkthrough.</p>
             </div>
           ) : (
-            <form onSubmit={(e) => { e.preventDefault(); setSent(true); }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-                <div><label style={label}>Name</label><input style={field} required placeholder="Jane Doe" /></div>
-                <div><label style={label}>Work email</label><input style={field} type="email" required placeholder="jane@company.com" /></div>
+            <form onSubmit={submit}>
+              <div className="grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div><label style={label} htmlFor="c-name">Name</label><input id="c-name" style={field} required maxLength={120} autoComplete="name" placeholder="Jane Doe" value={form.name} onChange={set("name")} /></div>
+                <div><label style={label} htmlFor="c-email">Work email</label><input id="c-email" style={field} type="email" required maxLength={254} autoComplete="email" placeholder="jane@company.com" value={form.email} onChange={set("email")} /></div>
               </div>
-              <div style={{ marginBottom: 14 }}><label style={label}>Company</label><input style={field} placeholder="Acme Inc." /></div>
+              <div style={{ marginBottom: 14 }}><label style={label} htmlFor="c-company">Company</label><input id="c-company" style={field} maxLength={160} autoComplete="organization" placeholder="Acme Inc." value={form.company} onChange={set("company")} /></div>
               <div style={{ marginBottom: 14 }}>
-                <label style={label}>What agent do you want to evaluate?</label>
-                <input style={field} placeholder="e.g. a customer-support agent on DevRev" />
+                <label style={label} htmlFor="c-kind">What kind of agent is it?</label>
+                <select id="c-kind" style={{ ...field, appearance: "auto" }} required value={form.agent_kind} onChange={set("agent_kind")}>
+                  <option value="" disabled>Choose one</option>
+                  {AGENT_KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
+                </select>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={label} htmlFor="c-agent">What agent do you want to evaluate?</label>
+                <input id="c-agent" style={field} maxLength={300} placeholder="e.g. a customer-support agent on DevRev" value={form.agent} onChange={set("agent")} />
               </div>
               <div style={{ marginBottom: 20 }}>
-                <label style={label}>Anything else?</label>
-                <textarea style={{ ...field, resize: "vertical", minHeight: 90, fontFamily: "Inter" }} placeholder="Tell us about your use case…" />
+                <label style={label} htmlFor="c-msg">Anything else?</label>
+                <textarea id="c-msg" style={{ ...field, resize: "vertical", minHeight: 90, fontFamily: "Inter" }} maxLength={4000} placeholder="Tell us about your use case…" value={form.message} onChange={set("message")} />
               </div>
-              <Button onClick={() => {}} style={{ width: "100%", justifyContent: "center" }}>Request a walkthrough →</Button>
+              <button type="submit" disabled={busy} style={{
+                width: "100%", display: "flex", justifyContent: "center", cursor: "pointer", fontFamily: "Schibsted Grotesk",
+                fontWeight: 600, fontSize: 15, padding: "13px 24px", borderRadius: 999, border: "none",
+                background: T.ink, color: "#f7f4ee", opacity: busy ? 0.6 : 1,
+              }}>{busy ? "Sending…" : "Request a walkthrough →"}</button>
+              {error && (
+                <div role="alert" style={{ marginTop: 14, border: `1px solid ${T.red}40`, background: `${T.red}0d`, color: T.red, borderRadius: 10, padding: "10px 14px", fontSize: 13.5, lineHeight: 1.5 }}>{error}</div>
+              )}
               <p style={{ fontSize: 12, color: T.ink3, marginTop: 14, textAlign: "center" }}>
-                Prefer email? Reach the team directly — we respond within one business day.
+                An engineer will reach out to schedule your walkthrough.
               </p>
             </form>
           )}

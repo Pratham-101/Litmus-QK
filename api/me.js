@@ -8,6 +8,7 @@ export default function handler(req, res) {
     send(res, 200, {
       user: process.env.SESSION_SECRET ? currentUser(req) : null,
       methods: {
+        form: has("SESSION_SECRET", "DATABASE_URL"),
         google: has("SESSION_SECRET", "DATABASE_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
         microsoft: has("SESSION_SECRET", "DATABASE_URL", "MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET"),
         email: has("SESSION_SECRET", "DATABASE_URL", "RESEND_API_KEY", "EMAIL_FROM"),

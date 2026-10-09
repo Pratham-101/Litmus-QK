@@ -1,6 +1,6 @@
 // POST /api/auth/email {email} — sends a one-time sign-in link (15 minutes) through Resend.
 // Available only when RESEND_API_KEY and EMAIL_FROM are set; /api/me tells the page.
-import { allowEmailSend } from "../_lib/db.js";
+import { allow } from "../_lib/db.js";
 import { clientIp, env, fail, httpError, origin, readBody, send } from "../_lib/http.js";
 import { sign } from "../_lib/session.js";
 
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     if (!EMAIL.test(email) || email.length > 254) throw httpError(400, "Enter a valid email address");
     const key = env("RESEND_API_KEY");
     const from = env("EMAIL_FROM");
-    if (!(await allowEmailSend(email, clientIp(req)))) {
+    if (!(await allow("email-link", email, 3)) || !(await allow("email-link-ip", clientIp(req), 10))) {
       throw httpError(429, "Too many sign-in emails. Wait an hour, or sign in with Google or Microsoft.");
     }
     const link = `${origin(req)}/api/auth/email-callback?token=${encodeURIComponent(sign({ kind: "email", email }, 900))}`;

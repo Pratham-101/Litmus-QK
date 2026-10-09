@@ -1,10 +1,47 @@
-// The signups database: a Postgres on Railway. Three small tables, created on first use, so there
-// is no migration step. Only these functions reach it; the browser never does.
+// The website's database: a Postgres on Railway. Small tables, created on first use, so there is
+// no migration step. Only these functions reach it; the browser never does.
 import pg from "pg";
 import { env, httpError } from "./http.js";
 
 let pool;
 let ready;
+
+const SCHEMA = `
+  create table if not exists signups (
+    email       text primary key,
+    name        text,
+    company     text,
+    provider    text not null,              -- form | google | microsoft | email
+    first_seen  timestamptz not null default now(),
+    last_seen   timestamptz not null default now(),
+    sign_ins    integer not null default 1
+  );
+  alter table signups add column if not exists name text;
+  alter table signups add column if not exists company text;
+  create table if not exists downloads (
+    id          bigserial primary key,
+    email       text not null,
+    file        text not null,
+    created_at  timestamptz not null default now()
+  );
+  create table if not exists leads (            -- "Talk to our FDE"
+    id          bigserial primary key,
+    name        text not null,
+    email       text not null,
+    company     text,
+    agent_kind  text,
+    agent       text,
+    message     text,
+    created_at  timestamptz not null default now()
+  );
+  create table if not exists rate_events (     -- abuse limits for the public forms
+    id          bigserial primary key,
+    kind        text not null,
+    key         text not null,
+    created_at  timestamptz not null default now()
+  );
+  create index if not exists rate_events_recent on rate_events (kind, key, created_at);
+`;
 
 function connect() {
   if (!pool) {
@@ -15,31 +52,10 @@ function connect() {
     pool = new pg.Pool({ connectionString: url.replace(/[?&]sslmode=[^&]*/, ""), ssl, max: 2, idleTimeoutMillis: 10_000 });
     // An idle connection the database drops (a restart, a network blip) must not crash the
     // function; the pool replaces it on the next query.
-    pool.on("error", (err) => console.error("signups database: idle connection dropped:", err.message));
+    pool.on("error", (err) => console.error("website database: idle connection dropped:", err.message));
   }
   if (!ready) {
-    ready = pool.query(`
-      create table if not exists signups (
-        email       text primary key,
-        provider    text not null,
-        first_seen  timestamptz not null default now(),
-        last_seen   timestamptz not null default now(),
-        sign_ins    integer not null default 1
-      );
-      create table if not exists downloads (
-        id          bigserial primary key,
-        email       text not null,
-        file        text not null,
-        created_at  timestamptz not null default now()
-      );
-      create table if not exists email_sends (
-        id          bigserial primary key,
-        email       text not null,
-        ip          text not null,
-        created_at  timestamptz not null default now()
-      );
-      create index if not exists email_sends_recent on email_sends (created_at);
-    `).catch((err) => {
+    ready = pool.query(SCHEMA).catch((err) => {
       ready = null;
       throw err;
     });
@@ -53,15 +69,16 @@ async function query(sql, params) {
     return await db.query(sql, params);
   } catch (err) {
     if (err.status) throw err;
-    throw httpError(502, `The signups database refused the request: ${err.message}`);
+    throw httpError(502, `The website database refused the request: ${err.message}`);
   }
 }
 
-export async function recordSignIn(email, provider) {
+export async function recordSignIn(email, provider, { name = null, company = null } = {}) {
   await query(
-    `insert into signups (email, provider) values ($1, $2)
-     on conflict (email) do update set last_seen = now(), sign_ins = signups.sign_ins + 1`,
-    [email.toLowerCase(), provider],
+    `insert into signups (email, provider, name, company) values ($1, $2, $3, $4)
+     on conflict (email) do update set last_seen = now(), sign_ins = signups.sign_ins + 1,
+       name = coalesce(excluded.name, signups.name), company = coalesce(excluded.company, signups.company)`,
+    [email.toLowerCase(), provider, name, company],
   );
 }
 
@@ -69,14 +86,20 @@ export async function recordDownload(email, file) {
   await query("insert into downloads (email, file) values ($1, $2)", [email.toLowerCase(), file]);
 }
 
-// Email links: at most 3 per address and 10 per IP an hour, so the form can't be used to spam.
-export async function allowEmailSend(email, ip) {
-  const { rows } = await query(
-    `select count(*) filter (where email = $1) as by_email, count(*) filter (where ip = $2) as by_ip
-     from email_sends where created_at > now() - interval '1 hour'`,
-    [email.toLowerCase(), ip],
+export async function recordLead(lead) {
+  await query(
+    "insert into leads (name, email, company, agent_kind, agent, message) values ($1, $2, $3, $4, $5, $6)",
+    [lead.name, lead.email.toLowerCase(), lead.company, lead.agent_kind, lead.agent, lead.message],
   );
-  if (Number(rows[0].by_email) >= 3 || Number(rows[0].by_ip) >= 10) return false;
-  await query("insert into email_sends (email, ip) values ($1, $2)", [email.toLowerCase(), ip]);
+}
+
+// At most `limit` events of `kind` per key an hour; records this one when allowed.
+export async function allow(kind, key, limit) {
+  const { rows } = await query(
+    "select count(*) as n from rate_events where kind = $1 and key = $2 and created_at > now() - interval '1 hour'",
+    [kind, key],
+  );
+  if (Number(rows[0].n) >= limit) return false;
+  await query("insert into rate_events (kind, key) values ($1, $2)", [kind, key]);
   return true;
 }
