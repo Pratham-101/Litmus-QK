@@ -9,8 +9,8 @@ framework.
 ## Stack
 
 - Vite + React (static SPA, hash routing)
-- Static pages, plus sign-up (Supabase Auth) and two Vercel functions in `api/` that serve the
-  installers. One-time setup: [SIGNUP-SETUP.md](SIGNUP-SETUP.md)
+- Static pages, plus sign-up (Google, Microsoft, email link) and download as Vercel functions in
+  `api/`, with a small Postgres on Railway. Setup: [SIGNUP-SETUP.md](SIGNUP-SETUP.md)
 
 ## Develop
 

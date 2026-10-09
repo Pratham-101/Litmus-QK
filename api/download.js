@@ -1,21 +1,20 @@
-// POST /api/download {file} — records the download, then returns a 10-minute signed link.
-// Only a file that is in the listing can be asked for, so the name can't reach outside the folder.
-import { PREFIX, admin, fail, httpError, listInstallers, requireUser, send, signedLink } from "./_supabase.js";
+// POST /api/download {file} — records the download, then returns GitHub's short-lived link to it.
+// Only a file in the current release's listing can be asked for.
+import { recordDownload } from "./_lib/db.js";
+import { assetLink, latestRelease } from "./_lib/github.js";
+import { fail, httpError, readBody, send } from "./_lib/http.js";
+import { requireUser } from "./_lib/session.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return send(res, 405, { error: "Use POST" });
   try {
-    const sb = admin();
-    const user = await requireUser(req, sb);
-    const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
-    const file = String(body.file || "");
-    const installers = await listInstallers(sb);
-    if (!installers.some((i) => i.file === file)) throw httpError(404, `No installer named ${file || "(none)"}`);
-
-    const { error } = await sb.from("downloads").insert({ user_id: user.id, email: user.email || "", file: `${PREFIX}/${file}` });
-    if (error) throw httpError(502, `Could not record the download: ${error.message}`);
-
-    send(res, 200, { url: await signedLink(sb, file) });
+    const user = requireUser(req);
+    const file = String(readBody(req).file || "");
+    const { tag, installers } = await latestRelease();
+    const installer = installers.find((i) => i.file === file);
+    if (!installer) throw httpError(404, `No installer named ${file || "(none)"} in the current release`);
+    await recordDownload(user.email, `${tag}/${file}`);
+    send(res, 200, { url: await assetLink(installer.id) });
   } catch (err) {
     fail(res, err);
   }

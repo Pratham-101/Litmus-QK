@@ -1,12 +1,14 @@
-// GET /api/releases — the installers a signed-in user can download.
-import { admin, fail, listInstallers, requireUser, send } from "./_supabase.js";
+// GET /api/releases — the installers a signed-in visitor can download.
+import { latestRelease } from "./_lib/github.js";
+import { fail, send } from "./_lib/http.js";
+import { requireUser } from "./_lib/session.js";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return send(res, 405, { error: "Use GET" });
   try {
-    const sb = admin();
-    await requireUser(req, sb);
-    send(res, 200, { installers: await listInstallers(sb) });
+    requireUser(req);
+    const { tag, installers } = await latestRelease();
+    send(res, 200, { tag, installers: installers.map(({ id, ...rest }) => rest) });
   } catch (err) {
     fail(res, err);
   }

@@ -1,19 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { T } from "../theme.js";
 import { Container, Eyebrow, H2, Lead } from "../components/ui.jsx";
-import { authConfigError, emailLink, signInWith, useSession } from "../lib/auth.js";
+import { emailLink, signInWith, useMe } from "../lib/auth.js";
 
-// Sign up = sign in: the first sign-in creates the account and records the email (schema.sql).
+// A sign-in that went wrong comes back as /signup?error=…; show it as the provider worded it.
+function returnedError() {
+  const e = new URLSearchParams(window.location.search).get("error");
+  if (e) window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+  return e;
+}
+
+// Sign up = sign in: the first sign-in records the email (api/_lib/db.js).
 export default function Signup({ go }) {
-  const { loading, session } = useSession();
+  const { loading, user, methods, error: meError } = useMe();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(null);
   const [sent, setSent] = useState(null);
-  const [error, setError] = useState(authConfigError);
+  const [error, setError] = useState(returnedError);
 
   useEffect(() => {
-    if (session) go("download");
-  }, [session, go]);
+    if (user) go("download");
+  }, [user, go]);
 
   const run = async (what, fn) => {
     setBusy(what);
@@ -36,7 +43,9 @@ export default function Signup({ go }) {
     });
   };
 
-  const disabled = !!authConfigError || loading || !!busy;
+  const disabled = loading || !!busy;
+  const oauth = methods && (methods.google || methods.microsoft);
+  const none = methods && !methods.google && !methods.microsoft && !methods.email;
 
   return (
     <section style={{ padding: "88px 0 120px" }}>
@@ -47,18 +56,33 @@ export default function Signup({ go }) {
           Use your work account or any email address. The download page opens as soon as you are signed in.
         </Lead>
 
-        <div style={{ display: "grid", gap: 12 }}>
-          <Provider onClick={() => run("google", () => signInWith("google"))} disabled={disabled} busy={busy === "google"}
-            icon={<GoogleIcon />}>Continue with Google</Provider>
-          <Provider onClick={() => run("azure", () => signInWith("azure"))} disabled={disabled} busy={busy === "azure"}
-            icon={<MicrosoftIcon />}>Continue with Microsoft (Outlook)</Provider>
-        </div>
+        {loading && <p style={{ color: T.ink3 }}>Loading…</p>}
+        {none && (
+          <p style={{ color: T.ink2, lineHeight: 1.6 }}>
+            Sign-up opens shortly. Meanwhile, <button onClick={() => go("contact")} style={{ ...linkBtn, display: "inline", marginTop: 0, fontSize: 16 }}>talk to our team</button> for early access.
+          </p>
+        )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "28px 0", color: T.ink3, fontSize: 13 }}>
-          <span style={{ flex: 1, height: 1, background: T.line }} />or use any email<span style={{ flex: 1, height: 1, background: T.line }} />
-        </div>
+        {oauth && (
+          <div style={{ display: "grid", gap: 12 }}>
+            {methods.google && (
+              <Provider onClick={() => run("google", () => signInWith("google"))} disabled={disabled} busy={busy === "google"}
+                icon={<GoogleIcon />}>Continue with Google</Provider>
+            )}
+            {methods.microsoft && (
+              <Provider onClick={() => run("microsoft", () => signInWith("microsoft"))} disabled={disabled} busy={busy === "microsoft"}
+                icon={<MicrosoftIcon />}>Continue with Microsoft (Outlook)</Provider>
+            )}
+          </div>
+        )}
 
-        {sent ? (
+        {oauth && methods.email && (
+          <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "28px 0", color: T.ink3, fontSize: 13 }}>
+            <span style={{ flex: 1, height: 1, background: T.line }} />or use any email<span style={{ flex: 1, height: 1, background: T.line }} />
+          </div>
+        )}
+
+        {!methods?.email ? null : sent ? (
           <div role="status" style={{ border: `1px solid ${T.green}40`, background: `${T.green}0d`, borderRadius: 12, padding: "16px 18px", color: T.ink, lineHeight: 1.55 }}>
             We sent a sign-in link to <strong>{sent}</strong>. Open it on this device to reach the download page.
             <button onClick={() => setSent(null)} style={linkBtn}>Use a different email</button>
@@ -77,9 +101,9 @@ export default function Signup({ go }) {
           </form>
         )}
 
-        {error && (
+        {(error || meError) && (
           <div role="alert" style={{ marginTop: 20, border: `1px solid ${T.red}40`, background: `${T.red}0d`, color: T.red, borderRadius: 12, padding: "12px 16px", fontSize: 14, lineHeight: 1.5 }}>
-            {error}
+            {error || meError}
           </div>
         )}
 

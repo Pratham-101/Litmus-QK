@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { T, MAXW } from "../theme.js";
 import { Button } from "./ui.jsx";
-import { useSession } from "../lib/auth.js";
+import { useMe } from "../lib/auth.js";
 
 const LINKS = [
   { label: "Platform", to: "home", hash: "#platform" },
@@ -12,7 +12,7 @@ const LINKS = [
 ];
 
 export default function Nav({ route, go }) {
-  const { session } = useSession();
+  const { user } = useMe();
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -65,8 +65,8 @@ export default function Nav({ route, go }) {
             <Button onClick={() => go("contact")} variant="secondary" style={{ padding: "10px 18px", fontSize: 14 }}>
               Talk to our FDE
             </Button>
-            <Button onClick={() => go(session ? "download" : "signup")} style={{ padding: "10px 20px", fontSize: 14 }}>
-              {session ? "Download" : "Sign up"}
+            <Button onClick={() => go(user ? "download" : "signup")} style={{ padding: "10px 20px", fontSize: 14 }}>
+              {user ? "Download" : "Sign up"}
             </Button>
           </div>
         </div>

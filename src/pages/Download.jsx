@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { T } from "../theme.js";
 import { Button, Container, Eyebrow, H2, Lead } from "../components/ui.jsx";
-import { api, authConfigError, signOut, useSession } from "../lib/auth.js";
+import { api, signOut, useMe } from "../lib/auth.js";
 
 // What to do once, because the beta builds are unsigned. Same steps as the GitHub release notes.
 const INSTALL = {
@@ -36,28 +36,28 @@ function size(bytes) {
 }
 
 export default function Download({ go }) {
-  const { loading, session } = useSession();
+  const { loading, user, error: meError } = useMe();
   const [installers, setInstallers] = useState(null);
-  const [error, setError] = useState(authConfigError);
+  const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
   const os = useMemo(detectOs, []);
 
   useEffect(() => {
-    if (!loading && !session && !authConfigError) go("signup");
-  }, [loading, session, go]);
+    if (!loading && !user && !meError) go("signup");
+  }, [loading, user, meError, go]);
 
   useEffect(() => {
-    if (!session) return;
-    api("/api/releases", { session })
+    if (!user) return;
+    api("/api/releases")
       .then((d) => setInstallers(d.installers))
       .catch((e) => setError(e.message));
-  }, [session]);
+  }, [user]);
 
   const download = async (file) => {
     setBusy(file);
     setError(null);
     try {
-      const { url } = await api("/api/download", { method: "POST", body: { file }, session });
+      const { url } = await api("/api/download", { method: "POST", body: { file } });
       window.location.assign(url);
     } catch (e) {
       setError(e.message);
@@ -78,9 +78,9 @@ export default function Download({ go }) {
       <Container style={{ maxWidth: 760 }}>
         <Eyebrow>Litmus beta{version ? ` · v${version}` : ""}</Eyebrow>
         <H2 style={{ fontSize: "clamp(30px, 4vw, 42px)" }}>Download Litmus</H2>
-        {session && (
+        {user && (
           <Lead style={{ fontSize: 16, marginBottom: 36 }}>
-            Signed in as <strong style={{ color: T.ink }}>{session.user.email}</strong>
+            Signed in as <strong style={{ color: T.ink }}>{user.email}</strong>
             {" · "}
             <button onClick={() => signOut().then(() => go("signup"))} style={{ background: "none", border: "none", padding: 0, color: T.ink2, textDecoration: "underline", cursor: "pointer", fontSize: 16 }}>
               Sign out
@@ -88,13 +88,13 @@ export default function Download({ go }) {
           </Lead>
         )}
 
-        {error && (
+        {(error || meError) && (
           <div role="alert" style={{ marginBottom: 24, border: `1px solid ${T.red}40`, background: `${T.red}0d`, color: T.red, borderRadius: 12, padding: "12px 16px", fontSize: 14, lineHeight: 1.5 }}>
-            {error}
+            {error || meError}
           </div>
         )}
 
-        {session && !installers && !error && <p style={{ color: T.ink3 }}>Loading the installers…</p>}
+        {user && !installers && !error && <p style={{ color: T.ink3 }}>Loading the installers…</p>}
         {installers && installers.length === 0 && (
           <p style={{ color: T.ink2 }}>No installers are published yet. Check back soon.</p>
         )}
