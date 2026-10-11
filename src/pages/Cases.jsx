@@ -15,8 +15,8 @@ export default function Cases({ go }) {
           <Eyebrow color={T.amber}>Case studies</Eyebrow>
           <H2 style={{ maxWidth: 860 }}>Real agents. Real verdicts.</H2>
           <Lead>
-            {count} agents across aviation, mobility, payments, banking, healthcare, education and the public
-            sector, anonymized for confidentiality and put through the evaluation suite. Each shows its scores,
+            {count} agents across aviation, mobility, automotive, payments, banking, healthcare, travel and the
+            public sector, anonymized for confidentiality and put through the evaluation suite. Each shows its scores,
             its gates and the verdict its own report reached.
           </Lead>
         </Container>
