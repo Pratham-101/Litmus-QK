@@ -32,6 +32,45 @@ export function useMe() {
   return { ...state, refresh };
 }
 
+// "Continue with Google", through Supabase Auth: Google's own sign-in page, back to this site with
+// a one-time code (PKCE), which Supabase turns into a session; our /api/session then asks Supabase
+// who it is before signing the visitor in.
+import { createClient } from "@supabase/supabase-js";
+
+let sb;
+function supabase() {
+  const url = import.meta.env.VITE_SUPABASE_URL, key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error("Google sign-in is not configured on this deployment yet.");
+  sb ??= createClient(url, key, { auth: { flowType: "pkce", persistSession: true, autoRefreshToken: false, detectSessionInUrl: false } });
+  return sb;
+}
+
+export async function signInWithGoogle(company) {
+  try { sessionStorage.setItem("litmus.company", company || ""); } catch { /* private mode */ }
+  const { error } = await supabase().auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.origin, queryParams: { prompt: "select_account" } },
+  });
+  if (error) throw new Error(`Google sign-in could not start: ${error.message || error.code || error.status}`);
+}
+
+// Called once at start-up: if Google just sent the visitor back (?code=…), finish the sign-in.
+// Returns true when a session was made, throws with Supabase's or Google's words when not.
+export async function finishGoogleSignIn() {
+  const q = new URLSearchParams(window.location.search);
+  const code = q.get("code"), err = q.get("error_description") || q.get("error");
+  if (!code && !err) return false;
+  window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+  if (err) throw new Error(`Google sign-in was not completed: ${err}`);
+  const { data, error } = await supabase().auth.exchangeCodeForSession(code);
+  if (error) throw new Error(`Google sign-in could not be confirmed: ${error.message || error.code || error.status}`);
+  let company = "";
+  try { company = sessionStorage.getItem("litmus.company") || ""; sessionStorage.removeItem("litmus.company"); } catch { /* ignore */ }
+  await api("/api/session", { method: "POST", body: { accessToken: data.session.access_token, company } });
+  await supabase().auth.signOut({ scope: "local" }); // our own cookie is the session from here on
+  return true;
+}
+
 export function signOut() {
   return api("/api/logout", { method: "POST" });
 }

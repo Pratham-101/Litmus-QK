@@ -10,6 +10,7 @@ import Docs from "./pages/Docs.jsx";
 import Contact from "./pages/Contact.jsx";
 import Signup from "./pages/Signup.jsx";
 import Download from "./pages/Download.jsx";
+import { finishGoogleSignIn } from "./lib/auth.js";
 
 const ROUTES = { home: Home, framework: Framework, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact, signup: Signup, download: Download };
 
@@ -27,6 +28,14 @@ export default function App() {
 
   const go = useCallback((to, hash) => {
     window.location.hash = `/${to}${hash || ""}`;
+  }, []);
+
+  // Back from Google (?code=…): finish the sign-in, then the download page; a failure goes to the
+  // sign-up page with Google's or Supabase's own words.
+  useEffect(() => {
+    finishGoogleSignIn()
+      .then((done) => { if (done) window.location.replace("/#/download"); })
+      .catch((e) => window.location.replace(`/signup?error=${encodeURIComponent(e.message)}#/signup`));
   }, []);
 
   useEffect(() => {
