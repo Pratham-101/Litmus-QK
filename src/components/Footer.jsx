@@ -37,7 +37,7 @@ export default function Footer({ go }) {
               built on DevRev Agent Studio and Arize AX, grounded in CLAMP · PEST · GHTPWR.
             </p>
             <p style={{ fontSize: 13.5, color: T.ink, marginTop: 16, fontWeight: 600 }}>
-              Built by Pratham Chintrate.
+              Built by TDN.
             </p>
           </div>
           {cols.map((c) => (
