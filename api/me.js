@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     const base = has("SESSION_SECRET", "DATABASE_URL");
     send(res, 200, {
       user: process.env.SESSION_SECRET ? currentUser(req) : null,
-      methods: { form: base, google: base && (await googleEnabled()) },
+      methods: { google: base && (await googleEnabled()) },
     });
   } catch (err) {
     fail(res, err);
