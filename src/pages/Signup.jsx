@@ -126,10 +126,6 @@ export default function Signup({ go }) {
           </div>
         )}
 
-        <p style={{ marginTop: 28, fontSize: 13, color: T.ink3, lineHeight: 1.6 }}>
-          We keep your name, email and which installer you download, to know how many people use Litmus.
-          Nothing else, and we don't share it.
-        </p>
       </Container>
     </section>
   );
