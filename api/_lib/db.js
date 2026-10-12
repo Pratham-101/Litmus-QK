@@ -41,6 +41,14 @@ const SCHEMA = `
     created_at  timestamptz not null default now()
   );
   create index if not exists rate_events_recent on rate_events (kind, key, created_at);
+  create table if not exists email_codes (     -- one pending 6-digit code per address
+    email       text primary key,
+    code_hash   text not null,
+    name        text,
+    company     text,
+    attempts    integer not null default 0,
+    expires_at  timestamptz not null
+  );
 `;
 
 function connect() {
@@ -102,4 +110,31 @@ export async function allow(kind, key, limit) {
   if (Number(rows[0].n) >= limit) return false;
   await query("insert into rate_events (kind, key) values ($1, $2)", [kind, key]);
   return true;
+}
+
+// Email codes: only a hash is stored; a code works once, for 10 minutes, with 5 tries.
+export async function saveCode(email, codeHash, { name, company }) {
+  await query(
+    `insert into email_codes (email, code_hash, name, company, attempts, expires_at)
+     values ($1, $2, $3, $4, 0, now() + interval '10 minutes')
+     on conflict (email) do update set code_hash = excluded.code_hash, name = excluded.name,
+       company = excluded.company, attempts = 0, expires_at = excluded.expires_at`,
+    [email, codeHash, name, company],
+  );
+}
+
+// Returns {ok, name, company} or {ok: false, reason}. Every check counts as an attempt.
+export async function checkCode(email, codeHash) {
+  const { rows } = await query(
+    `update email_codes set attempts = attempts + 1 where email = $1
+     returning code_hash, name, company, attempts, expires_at < now() as expired`,
+    [email],
+  );
+  const row = rows[0];
+  if (!row) return { ok: false, reason: "No code was sent to this address, or it was already used. Ask for a new one." };
+  if (row.expired) return { ok: false, reason: "This code has expired. Ask for a new one." };
+  if (row.attempts > 5) return { ok: false, reason: "Too many wrong codes. Ask for a new one." };
+  if (row.code_hash !== codeHash) return { ok: false, reason: "That code is not right. Check the email and try again." };
+  await query("delete from email_codes where email = $1", [email]);
+  return { ok: true, name: row.name, company: row.company };
 }
