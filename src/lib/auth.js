@@ -45,17 +45,30 @@ function supabase() {
   return sb;
 }
 
+// Supabase's error objects don't always carry their text in `message` (a 500 from the email
+// sender arrives as "{}"); find the words it did send, or say what we know.
+function sbError(error, doing) {
+  const words = [error?.message, error?.msg, error?.error_description, error?.code]
+    .find((m) => typeof m === "string" && m.trim() && m.trim() !== "{}");
+  const status = error?.status ? ` (HTTP ${error.status})` : "";
+  return new Error(words ? `${words}${status}` : `Supabase could not ${doing}${status}`);
+}
+
 export async function sendCode({ name, email, company }) {
   const { error } = await supabase().auth.signInWithOtp({
     email: email.trim(),
     options: { shouldCreateUser: true, data: { name: name.trim(), company: company.trim() } },
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    const err = sbError(error, "send the code email");
+    if (error.status === 500) err.message = `The code email could not be sent: ${err.message}. Please try again in a few minutes.`;
+    throw err;
+  }
 }
 
 export async function verifyCode({ name, email, company }, code) {
   const { data, error } = await supabase().auth.verifyOtp({ email: email.trim(), token: code, type: "email" });
-  if (error) throw new Error(error.message);
+  if (error) throw sbError(error, "check the code");
   const accessToken = data.session?.access_token;
   if (!accessToken) throw new Error("Supabase confirmed the code but returned no session.");
   return api("/api/session", { method: "POST", body: { accessToken, name, company } });
