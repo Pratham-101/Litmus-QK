@@ -1,30 +1,33 @@
 // GET /api/me — who is signed in (or null), and which sign-in methods this deployment offers.
-// Google counts as on when the Supabase project has its Google provider enabled.
+// A provider counts as on when the Supabase project has that provider enabled (its auth settings
+// are read once a minute and cached).
 import { fail, send } from "./_lib/http.js";
 import { currentUser } from "./_lib/session.js";
 
-let google = { at: 0, on: false };
-async function googleEnabled() {
+let cache = { at: 0, external: {} };
+async function externalProviders() {
   const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_ANON_KEY;
-  if (!url || !key) return false;
-  if (Date.now() - google.at < 60_000) return google.on;
+  if (!url || !key) return {};
+  if (Date.now() - cache.at < 60_000) return cache.external;
   try {
     const resp = await fetch(`${url.replace(/\/+$/, "")}/auth/v1/settings`, { headers: { apikey: key } });
-    const on = resp.ok && (await resp.json())?.external?.google === true;
-    google = { at: Date.now(), on };
+    cache = { at: Date.now(), external: (resp.ok && (await resp.json())?.external) || {} };
   } catch {
-    google = { at: Date.now(), on: false };
+    cache = { at: Date.now(), external: {} };
   }
-  return google.on;
+  return cache.external;
 }
 
 export default async function handler(req, res) {
   try {
-    const has = (...names) => names.every((n) => !!process.env[n]);
-    const base = has("SESSION_SECRET", "DATABASE_URL");
+    const base = ["SESSION_SECRET", "DATABASE_URL"].every((n) => !!process.env[n]);
+    const external = base ? await externalProviders() : {};
     send(res, 200, {
       user: process.env.SESSION_SECRET ? currentUser(req) : null,
-      methods: { google: base && (await googleEnabled()) },
+      methods: {
+        google: base && external.google === true,
+        microsoft: base && external.azure === true,  // Supabase calls the Microsoft provider "azure"
+      },
     });
   } catch (err) {
     fail(res, err);

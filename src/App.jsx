@@ -11,7 +11,7 @@ import Contact from "./pages/Contact.jsx";
 import Signup from "./pages/Signup.jsx";
 import Download from "./pages/Download.jsx";
 import Privacy from "./pages/Privacy.jsx";
-import { finishGoogleSignIn } from "./lib/auth.js";
+import { finishOAuthSignIn } from "./lib/auth.js";
 
 const ROUTES = { home: Home, framework: Framework, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact, signup: Signup, download: Download, privacy: Privacy };
 
@@ -34,7 +34,7 @@ export default function App() {
   // Back from Google (?code=…): finish the sign-in, then the download page; a failure goes to the
   // sign-up page with Google's or Supabase's own words.
   useEffect(() => {
-    finishGoogleSignIn()
+    finishOAuthSignIn()
       .then((done) => { if (done) window.location.replace("/#/download"); })
       .catch((e) => window.location.replace(`/signup?error=${encodeURIComponent(e.message)}#/signup`));
   }, []);

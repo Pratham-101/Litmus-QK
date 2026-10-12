@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { T } from "../theme.js";
 import { Container, Eyebrow, H2, Lead } from "../components/ui.jsx";
-import { signInWithGoogle, useMe } from "../lib/auth.js";
+import { signInWith, useMe } from "../lib/auth.js";
 
 // A sign-in that went wrong comes back as /signup?error=…; show it as the provider worded it.
 function returnedError() {
@@ -21,7 +21,7 @@ export default function Signup({ go }) {
   }, [user, go]);
 
   const disabled = loading || !!busy;
-  const closed = methods && !methods.google;
+  const closed = methods && !methods.google && !methods.microsoft;
 
   return (
     <section style={{ padding: "88px 0 120px" }}>
@@ -29,7 +29,7 @@ export default function Signup({ go }) {
         <Eyebrow>Litmus beta · free for evaluation teams</Eyebrow>
         <H2 style={{ fontSize: "clamp(30px, 4vw, 42px)" }}>Download Litmus</H2>
         <Lead style={{ fontSize: 17, marginBottom: 32 }}>
-          Sign in with Google and the download opens straight away: macOS, Windows and Linux.
+          Sign in with your work account and the download opens straight away: macOS, Windows and Linux.
         </Lead>
 
         {loading && <p style={{ color: T.ink3 }}>Loading…</p>}
@@ -39,17 +39,17 @@ export default function Signup({ go }) {
           </p>
         )}
 
-        {methods?.google && (
-          <button onClick={() => { setBusy("google"); setError(null); signInWithGoogle("").catch((e) => { setError(e.message); setBusy(null); }); }}
-            disabled={disabled} style={{ ...pill, justifyContent: "center", gap: 12, width: "100%", background: T.paper, color: T.ink, border: `1px solid ${T.line}`, opacity: disabled && busy !== "google" ? 0.55 : 1 }}>
-            <GoogleIcon />{busy === "google" ? "Opening Google…" : "Continue with Google"}
-          </button>
-        )}
-
-        {methods?.google && (
-          <p style={{ marginTop: 18, fontSize: 13.5, color: T.ink3, textAlign: "center" }}>
-            More sign-up options are coming soon.
-          </p>
+        {(methods?.google || methods?.microsoft) && (
+          <div style={{ display: "grid", gap: 12 }}>
+            {methods?.google && (
+              <Provider onClick={() => { setBusy("google"); setError(null); signInWith("google", "").catch((e) => { setError(e.message); setBusy(null); }); }}
+                disabled={disabled} busy={busy === "google"} icon={<GoogleIcon />} label="Continue with Google" />
+            )}
+            {methods?.microsoft && (
+              <Provider onClick={() => { setBusy("azure"); setError(null); signInWith("azure", "").catch((e) => { setError(e.message); setBusy(null); }); }}
+                disabled={disabled} busy={busy === "azure"} icon={<MicrosoftIcon />} label="Continue with Microsoft" />
+            )}
+          </div>
         )}
 
         {(error || meError) && (
@@ -71,6 +71,24 @@ const pill = {
 const linkBtn = { display: "block", marginTop: 8, background: "none", border: "none", padding: 0, color: T.ink2, textDecoration: "underline", cursor: "pointer", fontSize: 14 };
 
 
+
+function Provider({ onClick, disabled, busy, icon, label }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ ...pill, justifyContent: "center", gap: 12, width: "100%", background: T.paper, color: T.ink, border: `1px solid ${T.line}`, opacity: disabled && !busy ? 0.55 : 1 }}>
+      {icon}{busy ? "Opening…" : label}
+    </button>
+  );
+}
+
+function MicrosoftIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 21 21" aria-hidden>
+      <rect x="1" y="1" width="9" height="9" fill="#f25022" /><rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+      <rect x="1" y="11" width="9" height="9" fill="#00a4ef" /><rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+    </svg>
+  );
+}
 
 function GoogleIcon() {
   return (

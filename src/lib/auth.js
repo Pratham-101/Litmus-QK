@@ -45,25 +45,29 @@ function supabase() {
   return sb;
 }
 
-export async function signInWithGoogle(company) {
+// provider: "google" or "azure" (Microsoft). Both go through Supabase's OAuth; the return is
+// handled by finishOAuthSignIn below, the same way for either provider.
+const PROVIDER_LABEL = { google: "Google", azure: "Microsoft" };
+
+export async function signInWith(provider, company) {
   try { sessionStorage.setItem("litmus.company", company || ""); } catch { /* private mode */ }
-  const { error } = await supabase().auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.origin, queryParams: { prompt: "select_account" } },
-  });
-  if (error) throw new Error(`Google sign-in could not start: ${error.message || error.code || error.status}`);
+  const options = { redirectTo: window.location.origin, queryParams: { prompt: "select_account" } };
+  // Microsoft personal accounts only return an email when it is asked for explicitly.
+  if (provider === "azure") options.scopes = "openid email profile";
+  const { error } = await supabase().auth.signInWithOAuth({ provider, options });
+  if (error) throw new Error(`${PROVIDER_LABEL[provider] || provider} sign-in could not start: ${error.message || error.code || error.status}`);
 }
 
-// Called once at start-up: if Google just sent the visitor back (?code=…), finish the sign-in.
-// Returns true when a session was made, throws with Supabase's or Google's words when not.
-export async function finishGoogleSignIn() {
+// Called once at start-up: if a provider just sent the visitor back (?code=…), finish the sign-in.
+// Returns true when a session was made, throws with Supabase's or the provider's words when not.
+export async function finishOAuthSignIn() {
   const q = new URLSearchParams(window.location.search);
   const code = q.get("code"), err = q.get("error_description") || q.get("error");
   if (!code && !err) return false;
   window.history.replaceState(null, "", window.location.pathname + window.location.hash);
-  if (err) throw new Error(`Google sign-in was not completed: ${err}`);
+  if (err) throw new Error(`Sign-in was not completed: ${err}`);
   const { data, error } = await supabase().auth.exchangeCodeForSession(code);
-  if (error) throw new Error(`Google sign-in could not be confirmed: ${error.message || error.code || error.status}`);
+  if (error) throw new Error(`Sign-in could not be confirmed: ${error.message || error.code || error.status}`);
   let company = "";
   try { company = sessionStorage.getItem("litmus.company") || ""; sessionStorage.removeItem("litmus.company"); } catch { /* ignore */ }
   await api("/api/session", { method: "POST", body: { accessToken: data.session.access_token, company } });
