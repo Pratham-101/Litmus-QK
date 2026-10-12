@@ -32,6 +32,35 @@ export function useMe() {
   return { ...state, refresh };
 }
 
+// Email codes through Supabase Auth: Supabase sends a 6-digit code to the address and confirms it;
+// the confirmed session is then handed to our /api/session, which asks Supabase again.
+import { createClient } from "@supabase/supabase-js";
+
+const SB_URL = import.meta.env.VITE_SUPABASE_URL;
+const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let sb;
+function supabase() {
+  if (!SB_URL || !SB_KEY) throw new Error("Sign-up is not configured on this deployment yet.");
+  sb ??= createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+  return sb;
+}
+
+export async function sendCode({ name, email, company }) {
+  const { error } = await supabase().auth.signInWithOtp({
+    email: email.trim(),
+    options: { shouldCreateUser: true, data: { name: name.trim(), company: company.trim() } },
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function verifyCode({ name, email, company }, code) {
+  const { data, error } = await supabase().auth.verifyOtp({ email: email.trim(), token: code, type: "email" });
+  if (error) throw new Error(error.message);
+  const accessToken = data.session?.access_token;
+  if (!accessToken) throw new Error("Supabase confirmed the code but returned no session.");
+  return api("/api/session", { method: "POST", body: { accessToken, name, company } });
+}
+
 export function signOut() {
   return api("/api/logout", { method: "POST" });
 }
