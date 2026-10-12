@@ -3,7 +3,7 @@ import { T, BRANCH } from "../theme.js";
 import { Container, Section, Eyebrow, H2, Lead, Button, Card, Pill, Frame, DotGrid } from "../components/ui.jsx";
 import LiveEval from "../components/LiveEval.jsx";
 import RaceBars from "../components/RaceBars.jsx";
-import VideoShowcase from "../components/VideoShowcase.jsx";
+import AppTour from "../components/AppTour.jsx";
 import CursorField from "../components/CursorField.jsx";
 import { Reveal, useCountUp, useMagnetic } from "../components/motion.jsx";
 
@@ -13,7 +13,7 @@ export default function Home({ go }) {
       <Hero go={go} />
       <WhatStrip />
       <Counters />
-      <VideoShowcase />
+      <AppTour />
       <Why />
       <RaceBars />
       <How go={go} />
