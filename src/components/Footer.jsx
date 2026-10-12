@@ -56,7 +56,7 @@ export default function Footer({ go }) {
           ))}
         </div>
         <div style={{ marginTop: 48, paddingTop: 24, borderTop: `1px solid ${T.line}`, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-          <span style={{ fontSize: 13, color: T.ink3 }}>© 2026 Litmus · QK AI Labs</span>
+          <span style={{ fontSize: 13, color: T.ink3 }}>© 2026 Litmus · QK AI Labs · <a href="/privacy" onClick={(e) => { e.preventDefault(); go("privacy"); }} style={{ color: T.ink3, textDecoration: "underline" }}>Privacy</a></span>
           <span style={{ fontFamily: "IBM Plex Mono", fontSize: 12.5, color: T.ink3 }}>CLAMP · PEST · GHTPWR</span>
         </div>
       </div>

@@ -10,9 +10,10 @@ import Docs from "./pages/Docs.jsx";
 import Contact from "./pages/Contact.jsx";
 import Signup from "./pages/Signup.jsx";
 import Download from "./pages/Download.jsx";
+import Privacy from "./pages/Privacy.jsx";
 import { finishGoogleSignIn } from "./lib/auth.js";
 
-const ROUTES = { home: Home, framework: Framework, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact, signup: Signup, download: Download };
+const ROUTES = { home: Home, framework: Framework, observability: Observability, cases: Cases, roadmap: Roadmap, docs: Docs, contact: Contact, signup: Signup, download: Download, privacy: Privacy };
 
 function parseHash() {
   const raw = window.location.hash.replace(/^#\/?/, "");
