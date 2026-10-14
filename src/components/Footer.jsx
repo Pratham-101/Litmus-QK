@@ -16,6 +16,7 @@ export default function Footer({ go }) {
       ["LLM-as-a-Judge", () => go("framework")],
     ]},
     { title: "Resources", links: [
+      ["Research papers", () => go("research")],
       ["Documentation", () => go("docs")],
       ["Evaluation lifecycle", () => go("docs")],
       ["LLM-as-a-Judge", () => go("docs")],

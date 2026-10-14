@@ -34,6 +34,15 @@ const SCHEMA = `
     message     text,
     created_at  timestamptz not null default now()
   );
+  create table if not exists paper_requests (   -- "Get the paper" lead gate
+    id          bigserial primary key,
+    paper       text not null,
+    name        text not null,
+    email       text not null,
+    company     text,
+    role        text,
+    created_at  timestamptz not null default now()
+  );
   create table if not exists rate_events (     -- abuse limits for the public forms
     id          bigserial primary key,
     kind        text not null,
@@ -102,4 +111,11 @@ export async function allow(kind, key, limit) {
   if (Number(rows[0].n) >= limit) return false;
   await query("insert into rate_events (kind, key) values ($1, $2)", [kind, key]);
   return true;
+}
+
+export async function recordPaperRequest(r) {
+  await query(
+    "insert into paper_requests (paper, name, email, company, role) values ($1, $2, $3, $4, $5)",
+    [r.paper, r.name, r.email.toLowerCase(), r.company, r.role],
+  );
 }

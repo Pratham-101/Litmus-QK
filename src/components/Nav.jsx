@@ -8,6 +8,7 @@ const LINKS = [
   { label: "Framework", to: "framework" },
   { label: "Observability", to: "observability" },
   { label: "Case Studies", to: "cases" },
+  { label: "Research", to: "research" },
   { label: "Docs", to: "docs" },
 ];
 
