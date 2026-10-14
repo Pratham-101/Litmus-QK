@@ -1,6 +1,7 @@
 // POST /api/contact — "Talk to our FDE". Saved as a lead in the website database.
 import { AGENT_KINDS } from "./_lib/agentKinds.js";
 import { allow, recordLead } from "./_lib/db.js";
+import { assertDeliverable } from "./_lib/emailCheck.js";
 import { email as validEmail, oneOf, text } from "./_lib/forms.js";
 import { clientIp, fail, httpError, readBody, send } from "./_lib/http.js";
 
@@ -16,6 +17,7 @@ export default async function handler(req, res) {
       agent: text(body.agent, "Agent", { max: 300 }),
       message: text(body.message, "Message", { max: 4000, multiline: true }),
     };
+    await assertDeliverable(lead.email);
     if (!(await allow("contact", clientIp(req), 10))) {
       throw httpError(429, "Too many requests from this network in the last hour. Try again later.");
     }

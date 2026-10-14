@@ -1,6 +1,7 @@
 // POST /api/paper {slug, name, email, company?, role?} — the gate. Records the lead, then returns a
 // 10-minute signed link to the PDF.
 import { allow, recordPaperRequest } from "./_lib/db.js";
+import { assertDeliverable } from "./_lib/emailCheck.js";
 import { email as validEmail, text } from "./_lib/forms.js";
 import { clientIp, fail, httpError, readBody, send } from "./_lib/http.js";
 import { paperBySlug, signedPaperUrl } from "./_lib/papers.js";
@@ -18,6 +19,7 @@ export default async function handler(req, res) {
       company: text(body.company, "Company", { max: 160 }),
       role: text(body.role, "Role", { max: 120 }),
     };
+    await assertDeliverable(lead.email);
     if (!(await allow("paper", clientIp(req), 20))) {
       throw httpError(429, "Too many requests from this network in the last hour. Try again later.");
     }
